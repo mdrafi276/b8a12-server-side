@@ -64,12 +64,7 @@ app.post("/jwt", async (req, res) => {
 // delete user 
     
     //   riview data 
-      app.post("/riview", async (req, res) => {
-        const newsit = req.body;
-        console.log(newsit);
-        const result = await riviewCollection.insertOne(newsit);
-        res.send(result);
-      });
+    
       app.get("/riview", async (req, res) => {
         const cursor = riviewCollection.find();
         const result = await cursor.toArray();
