@@ -48,17 +48,21 @@ app.post("/jwt", async (req, res) => {
 
 // user data api 
 
+     app.post("/users", async (req, res) => {
+       const query = req.body;
+       console.log(query);
+       const result = await userCollection.insertOne(query)
+       res.send(result);
+     });
 
 
-      
+      app.get("/users", async (req, res) => {
+        const cursor = userCollection.find();
+        const result = await cursor.toArray();
+        res.send(result);
+      });
 // delete user 
-    app.delete("/deleteUser/:id", async (req, res) => {
-      const id = req.params.id;
-      const query = { _id: new ObjectId(id) };
-      const result = await userCollection.deleteOne(query);
-      res.send(result);
-    });
-
+    
     //   riview data 
       app.post("/riview", async (req, res) => {
         const newsit = req.body;
