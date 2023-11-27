@@ -10,15 +10,13 @@ app.use(cookieParser());
 const port = process.env.PORT || 5000;
 
 require("dotenv").config();
-// app.use(
-//   cors({
-//     origin: [
-//    ,
-//     ],
-//     credentials: true,
-//   })
-// );
-// eware;
+app.use(
+  cors({
+    origin: ["http://localhost:5173"],
+    credentials: true,
+  })
+);
+
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.6eaz3fu.mongodb.net/?retryWrites=true&w=majority`;
 
@@ -39,12 +37,16 @@ async function run() {
 // jwt 
 app.post("/jwt", async (req, res) => {
   const user = req.body;
+  console.log(user);
   const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+    
     expiresIn: "1h",
-  });
+  });console.log(token);
   res.send({ token });
 });
 
+
+// user data api 
 
      app.post("/users", async (req, res) => {
        const query = req.body;
