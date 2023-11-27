@@ -50,11 +50,7 @@ app.post("/jwt", async (req, res) => {
 
 
 
-      app.get("/users", async (req, res) => {
-        const cursor = userCollection.find();
-        const result = await cursor.toArray();
-        res.send(result);
-      });
+      
 // delete user 
     app.delete("/deleteUser/:id", async (req, res) => {
       const id = req.params.id;
