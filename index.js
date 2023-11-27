@@ -48,12 +48,6 @@ app.post("/jwt", async (req, res) => {
 
 // user data api 
 
-     app.post("/users", async (req, res) => {
-       const query = req.body;
-       console.log(query);
-       const result = await userCollection.insertOne(query)
-       res.send(result);
-     });
 
 
       app.get("/users", async (req, res) => {
