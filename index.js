@@ -10,12 +10,12 @@ app.use(cookieParser());
 const port = process.env.PORT || 5000;
 
 require("dotenv").config();
-app.use(
-  cors({
-    origin: ["http://localhost:5173"],
-    credentials: true,
-  })
-);
+// app.use(
+//   cors({
+//     origin: ["http://localhost:5173"],
+//     credentials: true,
+//   })
+// );
 
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.6eaz3fu.mongodb.net/?retryWrites=true&w=majority`;
@@ -34,17 +34,43 @@ async function run() {
     const userCollection = client.db("compannyDB").collection("userCollection");
     const riviewCollection = client.db("compannyDB").collection("riviewCollection");
 
-// jwt 
-app.post("/jwt", async (req, res) => {
-  const user = req.body;
-  console.log(user);
-  const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+// // jwt 
+// app.post("/jwt", async (req, res) => {
+//   const user = req.body;
+//   console.log(user);
+//   const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
     
-    expiresIn: "1h",
-  });console.log(token);
-  res.send({ token });
-});
+//     expiresIn: "1h",
+//   })
+//   res
+//   .cookie("token", token, {
+//     httpOnly:true,
+//     secure:process.env.ACCESS_TOKEN_SECRET === 'production',
+//     sameSite:process.env.ACCESS_TOKEN_SECRET === 'production' ? 'none' : 'strict'
+//   })
+//   res.send({ token });
+// });
 
+
+
+
+
+
+    // middlewares
+    const verifyToken = (req, res, next) => {
+      console.log("inside verify token", req.headers.authorization);
+      if (!req.headers.authorization) {
+        return res.status(401).send({ message: "unauthorized access" });
+      }
+      const token = req.headers.authorization;
+      jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+        if (err) {
+          return res.status(401).send({ message: "unauthorized access" });
+        }
+        req.decoded = decoded;
+        next();
+      });
+    };
 
 // user data api 
 
