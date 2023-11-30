@@ -10,17 +10,14 @@ app.use(cookieParser());
 const port = process.env.PORT || 5000;
 
 require("dotenv").config();
-// app.use(
-//   cors({
-//     origin: ["http://localhost:5173"],
-//     credentials: true,
-//   })
-// );
+const stripe = require("stripe")(
+ "sk_test_51OHtAREuUUvKw4UvrjIpHLHzQJbU5v1WaZUkqiCZYHcpsJ0zNjVu3WF1gMKH8txMcGDSB97jIxl8WW89VcjTNfmT00kSkzuw53"
+);
+
 
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.6eaz3fu.mongodb.net/?retryWrites=true&w=majority`;
 
-// Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
@@ -32,6 +29,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     const userCollection = client.db("compannyDB").collection("userCollection");
+    const payCollection = client.db("compannyDB").collection("payCollection");
     const riviewCollection = client
       .db("compannyDB")
       .collection("riviewCollection");
@@ -51,7 +49,6 @@ async function run() {
 
     // middlewares
     const verifyToken = (req, res, next) => {
-      console.log("inside verify token", req.headers.authorization);
       if (!req.headers.authorization) {
         return res.status(401).send({ message: "unauthorized access" });
       }
@@ -74,7 +71,6 @@ async function run() {
       if (existingUser) {
         return res.send({ message: "user already exist ", insertedId: null });
       }
-      console.log(user);
       const result = await userCollection.insertOne(user);
       res.send(result);
     });
@@ -139,6 +135,28 @@ async function run() {
       const result = await userCollection.deleteOne(query);
       res.send(result);
     });
+    // payment intent 
+    app.post('/create-payment-intent', async (req, res) => {
+      const { price } = req.body;
+      const amount = parseInt(price * 100);
+
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: amount,
+        currency: 'usd',
+        payment_method_types: ['card']
+      });
+
+      res.send({
+        clientSecret: paymentIntent.client_secret
+      })
+    });
+
+app.post('/pay',async (req, res)=>{
+  const query = req.body;
+  const result = await payCollection.insertOne(query)
+  res.send(result)
+})
+
 
     //   riview data
     app.post("/contact", async (req, res) => {
@@ -165,6 +183,14 @@ async function run() {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await userCollection.findOne(query);
+      res.send(result);
+    });
+    app.get("/pay/:email", verifyToken, async (req, res) => {
+      const query = { email: req.params.email };
+      if (req.params.email !== req.decoded.email) {
+        return res.status(403).send({ message: "forbidden access" });
+      }
+      const result = await payCollection.find(query).toArray();
       res.send(result);
     });
 
